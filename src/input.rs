@@ -4,6 +4,54 @@ use bevy::prelude::*;
 
 use crate::{ActiveCameraData, ButtonZoomAxis, PanOrbitCamera, TrackpadBehavior};
 
+/// Identifies a button from various kind of input source (e.g. keyboard, mouse).
+#[derive(Debug, Reflect, Clone, Copy, PartialEq)]
+// TODO: Rename it. not only used for Modifier
+pub enum Input {
+    /// Button from the keyboard.
+    Keyboard(KeyCode),
+    /// Button from the mouse.
+    Mouse(MouseButton),
+}
+
+impl Input {
+    /// Returns `true` if the `Button` has been pressed.
+    pub fn pressed(
+        &self,
+        key_input: &Res<ButtonInput<KeyCode>>,
+        mouse_input: &Res<ButtonInput<MouseButton>>,
+    ) -> bool {
+        match self {
+            Input::Keyboard(code) => key_input.pressed(*code),
+            Input::Mouse(button) => mouse_input.pressed(*button),
+        }
+    }
+
+    /// Returns `true` if the `Button` has been just pressed.
+    pub fn just_pressed(
+        &self,
+        key_input: &Res<ButtonInput<KeyCode>>,
+        mouse_input: &Res<ButtonInput<MouseButton>>,
+    ) -> bool {
+        match self {
+            Input::Keyboard(code) => key_input.just_pressed(*code),
+            Input::Mouse(button) => mouse_input.just_pressed(*button),
+        }
+    }
+
+    /// Returns `true` if the `Button` has been just released.
+    pub fn just_released(
+        &self,
+        key_input: &Res<ButtonInput<KeyCode>>,
+        mouse_input: &Res<ButtonInput<MouseButton>>,
+    ) -> bool {
+        match self {
+            Input::Keyboard(code) => key_input.just_released(*code),
+            Input::Mouse(button) => mouse_input.just_released(*button),
+        }
+    }
+}
+
 #[derive(Resource, Default, Debug)]
 pub struct MouseKeyTracker {
     pub orbit: Vec2,
@@ -50,7 +98,7 @@ pub fn mouse_key_tracker(
 
     // Handle pinch gestures separately
     // Process pinch events
-    let pinch_zoom = process_pinch_events(&mut pinch_events, pan_orbit, &key_input);
+    let pinch_zoom = process_pinch_events(&mut pinch_events, pan_orbit, &mouse_input, &key_input);
 
     // If zoom button set, apply zoom based on mouse movement
     let mouse_zoom = if button_zoom_pressed(pan_orbit, &mouse_input) {
@@ -157,6 +205,7 @@ fn process_scroll_events(
 fn process_pinch_events(
     pinch_events: &mut MessageReader<PinchGesture>,
     pan_orbit: &PanOrbitCamera,
+    mouse_input: &Res<ButtonInput<MouseButton>>,
     key_input: &Res<ButtonInput<KeyCode>>,
 ) -> f32 {
     if !pan_orbit.trackpad_pinch_to_zoom_enabled {
@@ -172,10 +221,10 @@ fn process_pinch_events(
             // Check regular modifiers and BlenderLike modifiers
             pan_orbit
                 .modifier_orbit
-                .is_none_or(|modifier| !key_input.pressed(modifier))
+                .is_none_or(|modifier| modifier.pressed(&key_input, &mouse_input))
                 && pan_orbit
                     .modifier_pan
-                    .is_none_or(|modifier| !key_input.pressed(modifier))
+                    .is_none_or(|modifier| !modifier.pressed(&key_input, &mouse_input))
                 && modifier_pan.is_none_or(|modifier| !key_input.pressed(modifier))
                 && modifier_zoom.is_none_or(|modifier| !key_input.pressed(modifier))
         }
@@ -183,10 +232,10 @@ fn process_pinch_events(
             // Just check regular modifiers
             pan_orbit
                 .modifier_orbit
-                .is_none_or(|modifier| !key_input.pressed(modifier))
+                .is_none_or(|modifier| !modifier.pressed(&key_input, &mouse_input))
                 && pan_orbit
                     .modifier_pan
-                    .is_none_or(|modifier| !key_input.pressed(modifier))
+                    .is_none_or(|modifier| !modifier.pressed(&key_input, &mouse_input))
         }
     };
 
@@ -207,13 +256,13 @@ pub fn orbit_pressed(
 ) -> bool {
     let is_pressed = pan_orbit
         .modifier_orbit
-        .is_none_or(|modifier| key_input.pressed(modifier))
-        && mouse_input.pressed(pan_orbit.button_orbit);
+        .is_none_or(|modifier| modifier.pressed(&key_input, &mouse_input))
+        && pan_orbit.button_orbit.pressed(&key_input, &mouse_input);
 
     is_pressed
         && pan_orbit
             .modifier_pan
-            .is_none_or(|modifier| !key_input.pressed(modifier))
+            .is_none_or(|modifier| !modifier.pressed(&key_input, &mouse_input))
 }
 
 pub fn orbit_just_pressed(
@@ -223,13 +272,15 @@ pub fn orbit_just_pressed(
 ) -> bool {
     let just_pressed = pan_orbit
         .modifier_orbit
-        .is_none_or(|modifier| key_input.pressed(modifier))
-        && (mouse_input.just_pressed(pan_orbit.button_orbit));
+        .is_none_or(|modifier| modifier.pressed(&key_input, &mouse_input))
+        && (pan_orbit
+            .button_orbit
+            .just_pressed(&key_input, &mouse_input));
 
     just_pressed
         && pan_orbit
             .modifier_pan
-            .is_none_or(|modifier| !key_input.pressed(modifier))
+            .is_none_or(|modifier| !modifier.pressed(&key_input, &mouse_input))
 }
 
 pub fn orbit_just_released(
@@ -239,13 +290,15 @@ pub fn orbit_just_released(
 ) -> bool {
     let just_released = pan_orbit
         .modifier_orbit
-        .is_none_or(|modifier| key_input.pressed(modifier))
-        && (mouse_input.just_released(pan_orbit.button_orbit));
+        .is_none_or(|modifier| modifier.pressed(&key_input, &mouse_input))
+        && pan_orbit
+            .button_orbit
+            .just_released(&key_input, &mouse_input);
 
     just_released
         && pan_orbit
             .modifier_pan
-            .is_none_or(|modifier| !key_input.pressed(modifier))
+            .is_none_or(|modifier| !modifier.pressed(&key_input, &mouse_input))
 }
 
 pub fn pan_pressed(
@@ -255,13 +308,13 @@ pub fn pan_pressed(
 ) -> bool {
     let is_pressed = pan_orbit
         .modifier_pan
-        .is_none_or(|modifier| key_input.pressed(modifier))
-        && mouse_input.pressed(pan_orbit.button_pan);
+        .is_none_or(|modifier| modifier.pressed(&key_input, &mouse_input))
+        && pan_orbit.button_pan.pressed(&key_input, &mouse_input);
 
     is_pressed
         && pan_orbit
             .modifier_orbit
-            .is_none_or(|modifier| !key_input.pressed(modifier))
+            .is_none_or(|modifier| !modifier.pressed(&key_input, &mouse_input))
 }
 
 pub fn pan_just_pressed(
@@ -271,13 +324,13 @@ pub fn pan_just_pressed(
 ) -> bool {
     let just_pressed = pan_orbit
         .modifier_pan
-        .is_none_or(|modifier| key_input.pressed(modifier))
-        && (mouse_input.just_pressed(pan_orbit.button_pan));
+        .is_none_or(|modifier| modifier.pressed(&key_input, &mouse_input))
+        && pan_orbit.button_pan.just_pressed(&key_input, &mouse_input);
 
     just_pressed
         && pan_orbit
             .modifier_orbit
-            .is_none_or(|modifier| !key_input.pressed(modifier))
+            .is_none_or(|modifier| !modifier.pressed(&key_input, &mouse_input))
 }
 
 pub fn button_zoom_pressed(

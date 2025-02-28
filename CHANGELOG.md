@@ -1,3 +1,7 @@
+## 0.34.1
+
+- Add ability to use `MouseButton` for pan/orbit modifiers
+
 ## 0.34.0
 
 - Update to Bevy 0.18

@@ -14,6 +14,7 @@ use bevy_egui::EguiPreUpdateSet;
 
 #[cfg(feature = "bevy_egui")]
 pub use crate::egui::{EguiFocusIncludesHover, EguiWantsFocus};
+pub use crate::input::Input;
 use crate::input::{button_zoom_just_pressed, mouse_key_tracker, MouseKeyTracker};
 pub use crate::touch::TouchControls;
 use crate::touch::{touch_tracker, TouchGestures, TouchTracker};
@@ -214,10 +215,10 @@ pub struct PanOrbitCamera {
     pub zoom_smoothness: f32,
     /// Button used to orbit the camera.
     /// Defaults to `Button::Left`.
-    pub button_orbit: MouseButton,
+    pub button_orbit: Input,
     /// Button used to pan the camera.
     /// Defaults to `Button::Right`.
-    pub button_pan: MouseButton,
+    pub button_pan: Input,
     /// Button used to zoom the camera, by holding it down and moving the mouse forward and back.
     /// Defaults to `None`.
     pub button_zoom: Option<MouseButton>,
@@ -226,10 +227,10 @@ pub struct PanOrbitCamera {
     pub button_zoom_axis: ButtonZoomAxis,
     /// Key that must be pressed for `button_orbit` to work.
     /// Defaults to `None` (no modifier).
-    pub modifier_orbit: Option<KeyCode>,
+    pub modifier_orbit: Option<Input>,
     /// Key that must be pressed for `button_pan` to work.
     /// Defaults to `None` (no modifier).
-    pub modifier_pan: Option<KeyCode>,
+    pub modifier_pan: Option<Input>,
     /// Whether touch controls are enabled.
     /// Defaults to `true`.
     pub touch_enabled: bool,
@@ -302,8 +303,8 @@ impl Default for PanOrbitCamera {
             pan_smoothness: 0.02,
             zoom_sensitivity: 1.0,
             zoom_smoothness: 0.1,
-            button_orbit: MouseButton::Left,
-            button_pan: MouseButton::Right,
+            button_orbit: Input::Mouse(MouseButton::Left),
+            button_pan: Input::Mouse(MouseButton::Right),
             button_zoom: None,
             button_zoom_axis: ButtonZoomAxis::Y,
             reversed_button_zoom: false,

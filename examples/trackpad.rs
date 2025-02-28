@@ -6,7 +6,7 @@
 //!   Zoom: Mousewheel, ControlLeft + trackpad scroll
 
 use bevy::prelude::*;
-use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin, TrackpadBehavior};
+use bevy_panorbit_camera::{Input, PanOrbitCamera, PanOrbitCameraPlugin, TrackpadBehavior};
 use std::f32::consts::TAU;
 
 fn main() {
@@ -55,9 +55,9 @@ fn setup(
             // Allow the camera to go upside down
             allow_upside_down: true,
             // Change the controls (these match Blender)
-            button_orbit: MouseButton::Middle,
-            button_pan: MouseButton::Middle,
-            modifier_pan: Some(KeyCode::ShiftLeft),
+            button_orbit: Input::Mouse(MouseButton::Middle),
+            button_pan: Input::Mouse(MouseButton::Middle),
+            modifier_pan: Some(Input::Keyboard(KeyCode::ShiftLeft)),
             // camera responds to trackpad as in Blender
             // if you don't want to write out both modifiers,
             // you can use this helper method:

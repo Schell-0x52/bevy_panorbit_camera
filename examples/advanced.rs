@@ -7,7 +7,7 @@
 //!   Zoom: Mousewheel OR Right click + move mouse up/down
 
 use bevy::prelude::*;
-use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin, TouchControls};
+use bevy_panorbit_camera::{Input, PanOrbitCamera, PanOrbitCameraPlugin, TouchControls};
 use std::f32::consts::TAU;
 
 fn main() {
@@ -68,9 +68,9 @@ fn setup(
             // Allow the camera to go upside down
             allow_upside_down: true,
             // Change the controls (these match Blender)
-            button_orbit: MouseButton::Middle,
-            button_pan: MouseButton::Middle,
-            modifier_pan: Some(KeyCode::ShiftLeft),
+            button_orbit: Input::Mouse(MouseButton::Middle),
+            button_pan: Input::Mouse(MouseButton::Middle),
+            modifier_pan: Some(Input::Keyboard(KeyCode::ShiftLeft)),
             // Also enable zooming by holding right click and moving the mouse
             button_zoom: Some(MouseButton::Right),
             // Optionally configure button zoom to use left-right mouse movement
